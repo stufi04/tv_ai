@@ -1,0 +1,365 @@
+[
+  {
+    "id": "breaking-bad",
+    "title": "Breaking Bad",
+    "year": 2008,
+    "network": "AMC",
+    "genres": [
+      "Crime",
+      "Drama",
+      "Thriller"
+    ],
+    "summary": "A chemistry teacher turned methamphetamine manufacturer descends into the criminal underworld of Albuquerque."
+  },
+  {
+    "id": "game-of-thrones",
+    "title": "Game of Thrones",
+    "year": 2011,
+    "network": "HBO",
+    "genres": [
+      "Fantasy",
+      "Drama",
+      "Adventure"
+    ],
+    "summary": "Noble houses scheme and battle for the Iron Throne of Westeros while an ancient threat gathers beyond the Wall."
+  },
+  {
+    "id": "the-office",
+    "title": "The Office",
+    "year": 2005,
+    "network": "NBC",
+    "genres": [
+      "Comedy"
+    ],
+    "summary": "A mockumentary about the awkward, absurd daily lives of employees at the Dunder Mifflin paper company in Scranton."
+  },
+  {
+    "id": "friends",
+    "title": "Friends",
+    "year": 1994,
+    "network": "NBC",
+    "genres": [
+      "Comedy",
+      "Romance"
+    ],
+    "summary": "Six friends navigate love, careers and coffee in Manhattan."
+  },
+  {
+    "id": "stranger-things",
+    "title": "Stranger Things",
+    "year": 2016,
+    "network": "Netflix",
+    "genres": [
+      "Sci-Fi",
+      "Horror",
+      "Drama"
+    ],
+    "summary": "Kids in 1980s Hawkins, Indiana face secret experiments, supernatural forces and the Upside Down."
+  },
+  {
+    "id": "the-simpsons",
+    "title": "The Simpsons",
+    "year": 1989,
+    "network": "Fox",
+    "genres": [
+      "Animation",
+      "Comedy"
+    ],
+    "summary": "The satirical misadventures of a working-class family in the town of Springfield."
+  },
+  {
+    "id": "sherlock",
+    "title": "Sherlock",
+    "year": 2010,
+    "network": "BBC One",
+    "genres": [
+      "Crime",
+      "Mystery",
+      "Drama"
+    ],
+    "summary": "A modern-day Sherlock Holmes and Dr. John Watson solve baffling crimes in London."
+  },
+  {
+    "id": "the-mandalorian",
+    "title": "The Mandalorian",
+    "year": 2019,
+    "network": "Disney+",
+    "genres": [
+      "Sci-Fi",
+      "Adventure",
+      "Western"
+    ],
+    "summary": "A lone bounty hunter protects a mysterious child in the outer reaches of a galaxy far, far away."
+  },
+  {
+    "id": "seinfeld",
+    "title": "Seinfeld",
+    "year": 1989,
+    "network": "NBC",
+    "genres": [
+      "Comedy"
+    ],
+    "summary": "A stand-up comedian and his neurotic friends obsess over the minutiae of everyday life in New York City."
+  },
+  {
+    "id": "the-last-of-us",
+    "title": "The Last of Us",
+    "year": 2023,
+    "network": "HBO",
+    "genres": [
+      "Drama",
+      "Horror",
+      "Adventure"
+    ],
+    "summary": "A hardened smuggler escorts a teenage girl across a post-pandemic America overrun by infected."
+  },
+  {
+    "id": "doctor-who",
+    "title": "Doctor Who",
+    "year": 1963,
+    "network": "BBC One",
+    "genres": [
+      "Sci-Fi",
+      "Adventure"
+    ],
+    "summary": "A time-travelling alien called the Doctor explores space and time in the TARDIS with human companions."
+  },
+  {
+    "id": "succession",
+    "title": "Succession",
+    "year": 2018,
+    "network": "HBO",
+    "genres": [
+      "Drama",
+      "Comedy"
+    ],
+    "summary": "The dysfunctional Roy family fights for control of a global media empire."
+  },
+  {
+    "id": "the-crown",
+    "title": "The Crown",
+    "year": 2016,
+    "network": "Netflix",
+    "genres": [
+      "Drama",
+      "History"
+    ],
+    "summary": "The political rivalries and personal life of Queen Elizabeth II's reign."
+  },
+  {
+    "id": "ted-lasso",
+    "title": "Ted Lasso",
+    "year": 2020,
+    "network": "Apple TV+",
+    "genres": [
+      "Comedy",
+      "Sports",
+      "Drama"
+    ],
+    "summary": "An optimistic American football coach takes over an English Premier League team despite knowing nothing about soccer."
+  },
+  {
+    "id": "wednesday",
+    "title": "Wednesday",
+    "year": 2022,
+    "network": "Netflix",
+    "genres": [
+      "Mystery",
+      "Comedy",
+      "Fantasy"
+    ],
+    "summary": "Wednesday Addams investigates a murder mystery while navigating life at Nevermore Academy."
+  },
+  {
+    "id": "the-witcher",
+    "title": "The Witcher",
+    "year": 2019,
+    "network": "Netflix",
+    "genres": [
+      "Fantasy",
+      "Adventure",
+      "Drama"
+    ],
+    "summary": "Geralt of Rivia, a monster hunter for hire, struggles to find his place in a world where people are often more wicked than beasts."
+  },
+  {
+    "id": "brooklyn-nine-nine",
+    "title": "Brooklyn Nine-Nine",
+    "year": 2013,
+    "network": "Fox",
+    "genres": [
+      "Comedy",
+      "Crime"
+    ],
+    "summary": "A talented but immature detective and his diverse colleagues police Brooklyn's 99th precinct."
+  },
+  {
+    "id": "the-big-bang-theory",
+    "title": "The Big Bang Theory",
+    "year": 2007,
+    "network": "CBS",
+    "genres": [
+      "Comedy"
+    ],
+    "summary": "Brilliant but socially awkward physicists get a crash course in life from their new neighbour."
+  },
+  {
+    "id": "squid-game",
+    "title": "Squid Game",
+    "year": 2021,
+    "network": "Netflix",
+    "genres": [
+      "Thriller",
+      "Drama"
+    ],
+    "summary": "Hundreds of cash-strapped contestants risk their lives in deadly children's games for a massive prize."
+  },
+  {
+    "id": "peaky-blinders",
+    "title": "Peaky Blinders",
+    "year": 2013,
+    "network": "BBC Two",
+    "genres": [
+      "Crime",
+      "Drama",
+      "History"
+    ],
+    "summary": "The Shelby crime family rises through post-WWI Birmingham's gangland."
+  },
+  {
+    "id": "rick-and-morty",
+    "title": "Rick and Morty",
+    "year": 2013,
+    "network": "Adult Swim",
+    "genres": [
+      "Animation",
+      "Comedy",
+      "Sci-Fi"
+    ],
+    "summary": "A cynical mad scientist drags his anxious grandson on dangerous interdimensional adventures."
+  },
+  {
+    "id": "better-call-saul",
+    "title": "Better Call Saul",
+    "year": 2015,
+    "network": "AMC",
+    "genres": [
+      "Crime",
+      "Drama"
+    ],
+    "summary": "Small-time lawyer Jimmy McGill transforms into the morally flexible Saul Goodman."
+  },
+  {
+    "id": "the-walking-dead",
+    "title": "The Walking Dead",
+    "year": 2010,
+    "network": "AMC",
+    "genres": [
+      "Horror",
+      "Drama"
+    ],
+    "summary": "Survivors of a zombie apocalypse struggle to rebuild society while facing threats from the dead and the living."
+  },
+  {
+    "id": "lost",
+    "title": "Lost",
+    "year": 2004,
+    "network": "ABC",
+    "genres": [
+      "Mystery",
+      "Adventure",
+      "Drama"
+    ],
+    "summary": "Survivors of a plane crash on a mysterious island uncover its many secrets."
+  },
+  {
+    "id": "the-bear",
+    "title": "The Bear",
+    "year": 2022,
+    "network": "FX",
+    "genres": [
+      "Comedy",
+      "Drama"
+    ],
+    "summary": "A young fine-dining chef returns to Chicago to run his late brother's chaotic sandwich shop."
+  },
+  {
+    "id": "severance",
+    "title": "Severance",
+    "year": 2022,
+    "network": "Apple TV+",
+    "genres": [
+      "Sci-Fi",
+      "Thriller",
+      "Mystery"
+    ],
+    "summary": "Office workers have their memories surgically split between work and personal lives."
+  },
+  {
+    "id": "fleabag",
+    "title": "Fleabag",
+    "year": 2016,
+    "network": "BBC Three",
+    "genres": [
+      "Comedy",
+      "Drama"
+    ],
+    "summary": "A witty, angry, grief-stricken young woman navigates life and love in London while talking directly to the audience."
+  },
+  {
+    "id": "parks-and-recreation",
+    "title": "Parks and Recreation",
+    "year": 2009,
+    "network": "NBC",
+    "genres": [
+      "Comedy"
+    ],
+    "summary": "Relentlessly optimistic bureaucrat Leslie Knope tries to make her Indiana town a better place."
+  },
+  {
+    "id": "house-of-the-dragon",
+    "title": "House of the Dragon",
+    "year": 2022,
+    "network": "HBO",
+    "genres": [
+      "Fantasy",
+      "Drama"
+    ],
+    "summary": "House Targaryen tears itself apart in a civil war two hundred years before Game of Thrones."
+  },
+  {
+    "id": "money-heist",
+    "title": "Money Heist",
+    "year": 2017,
+    "network": "Netflix",
+    "genres": [
+      "Crime",
+      "Thriller"
+    ],
+    "summary": "A criminal mastermind called The Professor plans the biggest heist in Spanish history."
+  },
+  {
+    "id": "arcane",
+    "title": "Arcane",
+    "year": 2021,
+    "network": "Netflix",
+    "genres": [
+      "Animation",
+      "Fantasy",
+      "Action"
+    ],
+    "summary": "Two sisters end up on opposite sides of a conflict between the utopian city of Piltover and the undercity of Zaun."
+  },
+  {
+    "id": "twin-peaks",
+    "title": "Twin Peaks",
+    "year": 1990,
+    "network": "ABC",
+    "genres": [
+      "Mystery",
+      "Drama",
+      "Horror"
+    ],
+    "summary": "An eccentric FBI agent investigates the murder of a homecoming queen in a strange small town."
+  }
+]

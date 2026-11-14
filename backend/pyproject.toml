@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "episode-generator"
+version = "1.0.0"
+description = "Generate new and crossover TV episodes with Gemini."
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]>=0.115",
+    "google-genai>=1.40",
+    "pydantic>=2.11",
+    "pydantic-settings>=2.6",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-playwright>=0.6",
+    "ruff>=0.8",
+]
+
+[tool.setuptools]
+packages = ["app", "app.services"]
+
+[tool.setuptools.package-data]
+app = ["data/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["e2e: browser tests against the built frontend (needs Node.js and Playwright browsers)"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]

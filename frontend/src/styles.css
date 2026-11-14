@@ -1,0 +1,251 @@
+:root {
+  --bg: #12131c;
+  --surface: #1b1d2a;
+  --surface-raised: #252838;
+  --border: #33374b;
+  --text: #ecedf3;
+  --muted: #9a9db2;
+  --accent: #f5b942;
+  --accent-text: #1b1d2a;
+  --error: #ff7a7a;
+  --radius: 12px;
+
+  color-scheme: dark;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2 {
+  margin: 0 0 0.25rem;
+  line-height: 1.2;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.app__header h1 {
+  color: var(--accent);
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+}
+
+/* Selection bar */
+.selection-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.selection-bar__summary {
+  margin: 0;
+  font-weight: 600;
+}
+
+.selection-bar__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.button {
+  padding: 0.55rem 1.1rem;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.button--ghost {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Result */
+.loading {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.error {
+  color: var(--error);
+}
+
+.episode {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.episode__image {
+  width: 100%;
+  border-radius: var(--radius);
+}
+
+.episode__no-image {
+  align-self: center;
+  text-align: center;
+}
+
+.episode__logline {
+  font-style: italic;
+  color: var(--accent);
+}
+
+@media (max-width: 720px) {
+  .episode {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Browser */
+.browser {
+  display: grid;
+  gap: 1rem;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.field input,
+.field select {
+  min-width: 14rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 1rem;
+}
+
+.show-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.show-card {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1rem;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
+}
+
+.show-card:hover:not(:disabled) {
+  border-color: var(--muted);
+  transform: translateY(-2px);
+}
+
+.show-card[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--surface-raised);
+}
+
+.show-card:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.show-card__title {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.show-card__meta {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.show-card__summary {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.show-card__genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.tag {
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.result {
+  /* Keep the result clear of the sticky selection bar when scrolled into view. */
+  scroll-margin-top: 6rem;
+}
