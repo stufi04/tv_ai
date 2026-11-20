@@ -11,8 +11,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     gemini_api_key: SecretStr | None = None
-    gemini_text_model: str = "gemini-2.5-flash"
-    gemini_image_model: str = "gemini-2.5-flash-image"
+    gemini_text_model: str = "gemini-3.8-flash"
+    gemini_image_model: str = "gemini-3.1-flash-image"
     generate_images: bool = True
     # When set, the built React app is served from this directory at "/".
     frontend_dist: Path | None = None
