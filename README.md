@@ -32,6 +32,10 @@ npm install
 npm run dev                   # http://localhost:5173 (proxies /api to the backend)
 ```
 
+### Both at once
+
+After the setup above, `./dev.sh` from the repo root starts the backend and frontend together. Ctrl+C stops both.
+
 ### Single-process mode
 
 Build the frontend and let FastAPI serve it:
@@ -48,8 +52,8 @@ Set these in `backend/.env` or as environment variables:
 | Variable             | Default                  | Purpose                                         |
 | -------------------- | ------------------------ | ----------------------------------------------- |
 | `GEMINI_API_KEY`     | (none)                   | Required for generating episodes.               |
-| `GEMINI_TEXT_MODEL`  | `gemini-2.5-flash`       | Model that writes the story.                    |
-| `GEMINI_IMAGE_MODEL` | `gemini-2.5-flash-image` | Model that draws the illustration.              |
+| `GEMINI_TEXT_MODEL`  | `gemini-3.8-flash`       | Model that writes the story.                    |
+| `GEMINI_IMAGE_MODEL` | `gemini-3.1-flash-image` | Model that draws the illustration.              |
 | `GENERATE_IMAGES`    | `true`                   | Turn image generation off entirely.             |
 | `FRONTEND_DIST`      | (none)                   | Serve a built frontend from this directory.     |
 

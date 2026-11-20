@@ -3,6 +3,7 @@ import logging
 from collections.abc import Sequence
 from typing import Protocol
 
+import httpx
 from google import genai
 from google.genai import errors, types
 
@@ -77,7 +78,13 @@ class GeminiEpisodeGenerator:
         except errors.APIError as exc:
             if exc.code == 429:
                 raise RateLimitedError("Gemini rate limit reached. Please try again shortly.") from exc
+            if exc.code == 503:
+                raise EpisodeGenerationError(
+                    f"Gemini model {self._text_model} is overloaded right now. Please try again shortly."
+                ) from exc
             raise EpisodeGenerationError(f"Gemini request failed: {exc.message}") from exc
+        except httpx.TimeoutException as exc:
+            raise EpisodeGenerationError("Gemini took too long to respond. Please try again.") from exc
 
         if not isinstance(response.parsed, EpisodeDraft):
             raise EpisodeGenerationError("Gemini returned a response we could not understand.")
