@@ -69,7 +69,7 @@ def test_generates_new_episode_for_one_show(client: TestClient, fake_generator: 
     episode = response.json()
     assert episode["showIds"] == ["breaking-bad"]
     assert episode["title"] == "Breaking Bad: The Lost Episode"
-    assert "imageDataUrl" not in episode
+    assert episode["imageDataUrl"].startswith("data:image/png;base64,")
     assert fake_generator.requests == [["breaking-bad"]]
 
 

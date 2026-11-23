@@ -1,7 +1,8 @@
 # Episode Generator
 
 Pick a TV show and get a brand-new episode, or pick two for a crossover. The story is written by an
-open-weight LLM running on [Groq](https://groq.com). Show data comes from [TVmaze](https://www.tvmaze.com)
+open-weight LLM running on [Groq](https://groq.com) and, optionally, illustrated by an image model on
+[Cloudflare Workers AI](https://developers.cloudflare.com/workers-ai/). Show data comes from [TVmaze](https://www.tvmaze.com)
 (CC BY-SA).
 
 ```
@@ -50,15 +51,19 @@ cd ../backend && FRONTEND_DIST=../frontend/dist fastapi run app/main.py   # http
 
 Set these in `backend/.env` or as environment variables:
 
-| Variable                | Default                     | Purpose                                                           |
-| ----------------------- | --------------------------- | ----------------------------------------------------------------- |
-| `GROQ_API_KEY`          | (none)                      | Required for generating episodes.                                 |
-| `GROQ_MODEL`            | `openai/gpt-oss-120b`       | Model that writes the story.                                      |
-| `GROQ_FALLBACK_MODELS`  | `openai/gpt-oss-20b`        | Tried in order when the main model is rate limited, busy or slow. |
-| `FRONTEND_DIST`         | (none)                      | Serve a built frontend from this directory.                       |
-| `CATALOG_CACHE_PATH`    | `backend/.cache/shows.json` | Where the downloaded TVmaze catalogue is cached.                  |
-| `CATALOG_MAX_AGE_HOURS` | `168` (one week)            | Refresh the cache in the background after this.                   |
-| `SYNC_CATALOG`          | `true`                      | Set to `false` to use only the cache and never contact TVmaze.    |
+| Variable                 | Default                                | Purpose                                                               |
+| ------------------------ | -------------------------------------- | --------------------------------------------------------------------- |
+| `GROQ_API_KEY`           | (none)                                 | Required for generating episodes.                                     |
+| `GROQ_MODEL`             | `openai/gpt-oss-120b`                  | Model that writes the story.                                          |
+| `GROQ_FALLBACK_MODELS`   | `openai/gpt-oss-20b`                   | Tried in order when the main model is rate limited, busy or slow.     |
+| `CLOUDFLARE_ACCOUNT_ID`  | (none)                                 | Together with the token, turns on episode images.                     |
+| `CLOUDFLARE_API_TOKEN`   | (none)                                 | Cloudflare API token with Workers AI access.                          |
+| `CLOUDFLARE_IMAGE_MODEL` | `@cf/black-forest-labs/flux-1-schnell` | Text-to-image model on Workers AI.                                    |
+| `GENERATE_IMAGES`        | `true`                                 | Set to `false` to turn images off even when Cloudflare is configured. |
+| `FRONTEND_DIST`          | (none)                                 | Serve a built frontend from this directory.                           |
+| `CATALOG_CACHE_PATH`     | `backend/.cache/shows.json`            | Where the downloaded TVmaze catalogue is cached.                      |
+| `CATALOG_MAX_AGE_HOURS`  | `168` (one week)                       | Refresh the cache in the background after this.                       |
+| `SYNC_CATALOG`           | `true`                                 | Set to `false` to use only the cache and never contact TVmaze.        |
 
 **First run:** the backend downloads the TVmaze show index (about 3 minutes) in the background and caches
 it. The page says so meanwhile. Later starts load the cache instantly.
@@ -76,7 +81,8 @@ the next model in the chain is tried; if all are, the API returns HTTP 429 with 
 | GET    | `/api/genres`   | All genres in the catalogue.                                   |
 | POST   | `/api/episodes` | Body `{"showIds": ["the-office", "stranger-things"]}` (1 or 2 ids). |
 
-`POST /api/episodes` returns `{showIds, title, logline, story}`. Errors:
+`POST /api/episodes` returns `{showIds, title, logline, story, imageDataUrl}` (`imageDataUrl` is a
+`data:` URL, or `null` when images are off or failed). Errors:
 `404` unknown show, `422` invalid selection, `429` Groq rate limit on every model, `502` Groq failure,
 `503` missing API key.
 
@@ -97,6 +103,8 @@ pytest -m e2e --headed        # watch the browser tests run
 - `tests/test_catalog.py`: search ranking, the seeded "discover" order, genre filtering and paging.
 - `tests/test_tvmaze.py`: mapping TVmaze data, paged download with retries (via `httpx.MockTransport`),
   and the cache store (first run, fresh cache, stale cache, failed refresh).
+- `tests/test_illustrator.py`: Cloudflare image generation (request shape, image type detection, every
+  failure mode returning no image) against a fake API.
 - `tests/test_episode_generator.py`: the Groq integration (prompt, JSON schema, model fallback, error
   mapping) against a fake Groq API (`httpx.MockTransport`).
 - `tests/e2e/`: Playwright browser tests. They build the frontend, serve it from the real FastAPI app
@@ -125,7 +133,12 @@ CI runs everything (`.github/workflows/ci.yml`).
   fake through FastAPI dependency overrides. The request walks a fallback chain (`GROQ_MODEL`, then
   `GROQ_FALLBACK_MODELS`): a rate-limited (429), over-capacity (498), failing (5xx), timed-out (30 s) or
   unparseable model hands over to the next. Errors another model won't fix (bad request, unknown model,
-  bad key) fail immediately. Gemini was used originally but was dropped: its free tier was answering
+  bad key) fail immediately.
+- **Images**: the story model also writes a scene description (`EpisodeDraft.image_prompt`), which
+  `CloudflareIllustrator` sends to `flux-1-schnell` on Workers AI (plain JSON in, base64 image out; the
+  image type is detected from the bytes because the docs disagree on JPEG vs PNG). Images are best
+  effort: any failure, including the free daily allowance running out, is logged and the episode is
+  returned without a picture. Gemini was used originally but was dropped: its free tier was answering
   most requests with 503 "high demand" for days.
 - **API models** use snake_case in Python and camelCase in JSON (Pydantic alias generator).
 - **Frontend**: TanStack Query manages server state (`useShows` is an infinite query keyed on search,
