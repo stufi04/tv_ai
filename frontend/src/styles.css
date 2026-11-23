@@ -119,6 +119,25 @@ h2 {
   border-radius: var(--radius);
 }
 
+.episode--illustrated {
+  max-width: none;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.episode__image {
+  width: 100%;
+  border-radius: var(--radius);
+}
+
+@media (max-width: 720px) {
+  .episode--illustrated {
+    grid-template-columns: 1fr;
+  }
+}
+
 .episode__logline {
   font-style: italic;
   color: var(--accent);

@@ -17,7 +17,9 @@ from app.services.episode_generator import (
     create_groq_client,
 )
 
-DRAFT = EpisodeDraft(title="Pilot", logline="It begins.", story="Once upon a time.\n\nThe end.")
+DRAFT = EpisodeDraft(
+    title="Pilot", logline="It begins.", story="Once upon a time.\n\nThe end.", image_prompt="A desert at dawn."
+)
 
 BREAKING_BAD = Show(
     id="breaking-bad", title="Breaking Bad", year=2008, network="AMC", genres=["Drama"], summary="Chemistry."
@@ -56,9 +58,24 @@ class FakeGroq:
         return [request["model"] for request in self.requests]
 
 
-def run(fake: FakeGroq, shows: list[Show], models: tuple[str, ...] = ("main",)) -> Any:
+class StubIllustrator:
+    def __init__(self, result: str | None) -> None:
+        self.result = result
+        self.scenes: list[str] = []
+
+    async def illustrate(self, scene: str) -> str | None:
+        self.scenes.append(scene)
+        return self.result
+
+
+def run(
+    fake: FakeGroq,
+    shows: list[Show],
+    models: tuple[str, ...] = ("main",),
+    illustrator: StubIllustrator | None = None,
+) -> Any:
     http = httpx.AsyncClient(transport=httpx.MockTransport(fake.handler), base_url=GROQ_BASE_URL)
-    return asyncio.run(GroqEpisodeGenerator(http, models).generate(shows))
+    return asyncio.run(GroqEpisodeGenerator(http, models, illustrator).generate(shows))
 
 
 def test_generates_episode_from_structured_output() -> None:
@@ -68,6 +85,29 @@ def test_generates_episode_from_structured_output() -> None:
 
     assert (episode.show_ids, episode.title, episode.logline) == (["breaking-bad"], "Pilot", "It begins.")
     assert episode.story == "Once upon a time.\n\nThe end."
+
+
+def test_illustrates_the_scene_the_story_model_described() -> None:
+    illustrator = StubIllustrator("data:image/jpeg;base64,abc")
+
+    episode = run(FakeGroq({"main": DRAFT}), [BREAKING_BAD], illustrator=illustrator)
+
+    assert illustrator.scenes == ["A desert at dawn."]
+    assert episode.image_data_url == "data:image/jpeg;base64,abc"
+
+
+def test_episode_has_no_image_when_illustrator_fails_or_is_off() -> None:
+    assert run(FakeGroq({"main": DRAFT}), [BREAKING_BAD], illustrator=StubIllustrator(None)).image_data_url is None
+    assert run(FakeGroq({"main": DRAFT}), [BREAKING_BAD]).image_data_url is None
+
+
+def test_does_not_illustrate_when_the_story_fails() -> None:
+    illustrator = StubIllustrator("data:image/jpeg;base64,abc")
+
+    with pytest.raises(EpisodeGenerationError):
+        run(FakeGroq({"main": 503}), [BREAKING_BAD], illustrator=illustrator)
+
+    assert illustrator.scenes == []
 
 
 def test_sends_prompt_and_json_schema() -> None:
@@ -83,7 +123,7 @@ def test_sends_prompt_and_json_schema() -> None:
     assert "Breaking Bad (2008, AMC): Chemistry." in user["content"]
     schema = request["response_format"]["json_schema"]["schema"]
     assert request["response_format"]["type"] == "json_schema"
-    assert set(schema["properties"]) == set(schema["required"]) == {"title", "logline", "story"}
+    assert set(schema["properties"]) == set(schema["required"]) == {"title", "logline", "story", "image_prompt"}
     assert schema["additionalProperties"] is False
 
 

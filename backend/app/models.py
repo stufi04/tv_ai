@@ -51,6 +51,8 @@ class Episode(ApiModel):
     title: str
     logline: str
     story: str
+    # A data: URL, or None when images are off or the image model failed.
+    image_data_url: str | None = None
 
 
 class EpisodeDraft(BaseModel):
@@ -60,4 +62,8 @@ class EpisodeDraft(BaseModel):
     logline: str = Field(description="A one-sentence teaser for the episode.")
     story: str = Field(
         description="The episode as a short story of 250-350 words, split into paragraphs with blank lines."
+    )
+    image_prompt: str = Field(
+        description="A vivid visual description of the episode's key scene (setting, characters, mood, lighting), "
+        "used to illustrate it. Describe characters by appearance, not by actor names."
     )

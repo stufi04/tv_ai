@@ -18,6 +18,11 @@ class Settings(BaseSettings):
     # Tried in order when the main model is rate limited, over capacity or times out.
     # In .env, a comma-separated list: GROQ_FALLBACK_MODELS=openai/gpt-oss-20b,another/model
     groq_fallback_models: Annotated[list[str], NoDecode] = ["openai/gpt-oss-20b"]
+    # Episode images via Cloudflare Workers AI: on when both the account id and an API token are set.
+    cloudflare_account_id: str | None = None
+    cloudflare_api_token: SecretStr | None = None
+    cloudflare_image_model: str = "@cf/black-forest-labs/flux-1-schnell"
+    generate_images: bool = True
     # When set, the built React app is served from this directory at "/".
     frontend_dist: Path | None = None
     # The show catalogue is downloaded from TVmaze and cached here.

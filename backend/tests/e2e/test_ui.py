@@ -45,7 +45,9 @@ def test_generate_new_episode_for_one_show(page: Page, e2e_generator: FakeEpisod
     episode = page.get_by_role("article", name="Generated episode")
     expect(episode.get_by_role("heading", name="Breaking Bad: The Lost Episode")).to_be_visible()
     expect(episode.get_by_text("By Friday, nothing would ever be the same.")).to_be_visible()
-    expect(episode.get_by_role("img")).to_have_count(0)
+    expect(episode.get_by_role("img", name="Illustration for “Breaking Bad: The Lost Episode”")).to_have_attribute(
+        "src", re.compile(r"^data:image/png;base64,")
+    )
     assert e2e_generator.requests == [["breaking-bad"]]
 
 

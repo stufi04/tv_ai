@@ -6,6 +6,7 @@ import httpx
 from pydantic import ValidationError
 
 from app.models import Episode, EpisodeDraft, Show
+from app.services.illustrator import Illustrator
 
 logger = logging.getLogger(__name__)
 
@@ -58,22 +59,28 @@ class _ModelUnavailableError(Exception):
 
 
 class GroqEpisodeGenerator:
-    """Writes episodes with Groq's OpenAI-compatible chat completions API.
+    """Writes episodes with Groq's OpenAI-compatible chat completions API, optionally illustrated.
 
     `models` is tried in order: if a model is rate limited, over capacity, failing or times out, the next one
     gets the request, so one busy model doesn't fail the whole request.
     """
 
-    def __init__(self, http: httpx.AsyncClient, models: Sequence[str]) -> None:
+    def __init__(self, http: httpx.AsyncClient, models: Sequence[str], illustrator: Illustrator | None = None) -> None:
         if not models:
             raise ValueError("at least one model is required")
         self._http = http
         self._models = list(dict.fromkeys(models))  # dedupe, keep order
+        self._illustrator = illustrator
 
     async def generate(self, shows: Sequence[Show]) -> Episode:
         draft = await self._write_story(shows)
+        image_data_url = await self._illustrator.illustrate(draft.image_prompt) if self._illustrator else None
         return Episode(
-            show_ids=[show.id for show in shows], title=draft.title, logline=draft.logline, story=draft.story
+            show_ids=[show.id for show in shows],
+            title=draft.title,
+            logline=draft.logline,
+            story=draft.story,
+            image_data_url=image_data_url,
         )
 
     async def _write_story(self, shows: Sequence[Show]) -> EpisodeDraft:
