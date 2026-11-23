@@ -39,6 +39,13 @@ export default function App() {
     if (hasNextPage && !isFetchingNextPage) void fetchNextPage()
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
+  // Clear starts over: no selection and no episode (or error). reset() also detaches a request still in
+  // flight, so its result won't appear after clearing.
+  const clearAll = () => {
+    clear()
+    generation.reset()
+  }
+
   const generate = () => {
     generation.mutate(selectedIds)
     resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -55,7 +62,8 @@ export default function App() {
         selectedShows={selectedShows}
         isGenerating={generation.isPending}
         onGenerate={generate}
-        onClear={clear}
+        canClear={selectedShows.length > 0 || !generation.isIdle}
+        onClear={clearAll}
       />
 
       <section ref={resultRef} aria-live="polite" className="result">
