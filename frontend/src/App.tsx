@@ -1,30 +1,43 @@
-import { useMemo, useRef, useState } from 'react'
-import type { Show } from './api/types'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { EpisodeView } from './components/EpisodeView'
 import { SelectionBar } from './components/SelectionBar'
 import { ShowFilters } from './components/ShowFilters'
 import { ShowGrid } from './components/ShowGrid'
-import { ALL_GENRES, collectGenres, filterShows } from './filterShows'
+import { useDebouncedValue } from './hooks/useDebouncedValue'
 import { useGenerateEpisode } from './hooks/useGenerateEpisode'
+import { useGenres } from './hooks/useGenres'
 import { useShowSelection } from './hooks/useShowSelection'
 import { useShows } from './hooks/useShows'
 
-const NO_SHOWS: Show[] = []
+const SEARCH_DEBOUNCE_MS = 250
 
 export default function App() {
-  const { data: shows = NO_SHOWS, isPending: showsLoading, error: showsError } = useShows()
   const [search, setSearch] = useState('')
-  const [genre, setGenre] = useState(ALL_GENRES)
-  const { selectedIds, isFull, toggle, clear } = useShowSelection()
+  const [genre, setGenre] = useState('')
+  // One random seed per page load: a fresh mix of popular shows each visit, stable while scrolling.
+  const [seed] = useState(() => Math.floor(Math.random() * 2 ** 31))
+  const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS)
+
+  const showsQuery = useShows({ q: debouncedSearch.trim(), genre, seed })
+  const { data, isPending: showsLoading, error: showsError, hasNextPage, isFetchingNextPage, fetchNextPage } = showsQuery
+  const syncing = data?.pages[0]?.syncing ?? false
+  const { data: genres = [] } = useGenres(syncing)
+
+  const { selectedShows, selectedIds, isFull, toggle, clear } = useShowSelection()
   const generation = useGenerateEpisode()
   const resultRef = useRef<HTMLElement>(null)
 
-  const genres = useMemo(() => collectGenres(shows), [shows])
-  const visibleShows = useMemo(() => filterShows(shows, search, genre), [shows, search, genre])
-  const selectedShows = useMemo(
-    () => selectedIds.map((id) => shows.find((show) => show.id === id)).filter((show) => show !== undefined),
-    [shows, selectedIds],
-  )
+  // The same show can't appear twice in a seeded listing, but dedupe defensively in case pages shift.
+  const shows = useMemo(() => {
+    const seen = new Set<string>()
+    return (data?.pages ?? []).flatMap((page) =>
+      page.items.filter((show) => !seen.has(show.id) && seen.add(show.id)),
+    )
+  }, [data])
+
+  const loadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
   const generate = () => {
     generation.mutate(selectedIds)
@@ -69,10 +82,32 @@ export default function App() {
             Could not load shows: {showsError.message}
           </p>
         )}
-        {!showsLoading && !showsError && (
-          <ShowGrid shows={visibleShows} selectedIds={selectedIds} selectionFull={isFull} onToggle={toggle} />
+        {syncing && (
+          <p className="loading">
+            Downloading the show catalogue from TVmaze for the first time. This takes about 3 minutes and only
+            happens once.
+          </p>
+        )}
+        {data && !syncing && (
+          <ShowGrid
+            shows={shows}
+            selectedIds={selectedIds}
+            selectionFull={isFull}
+            onToggle={toggle}
+            hasMore={hasNextPage}
+            loadingMore={isFetchingNextPage}
+            onLoadMore={loadMore}
+          />
         )}
       </section>
+
+      <footer className="app__footer muted">
+        Show data from{' '}
+        <a href="https://www.tvmaze.com" target="_blank" rel="noreferrer">
+          TVmaze
+        </a>{' '}
+        (CC BY-SA).
+      </footer>
     </main>
   )
 }

@@ -112,34 +112,16 @@ h2 {
 }
 
 .episode {
-  display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-  gap: 1.5rem;
+  max-width: 72ch;
   padding: 1.5rem;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
 
-.episode__image {
-  width: 100%;
-  border-radius: var(--radius);
-}
-
-.episode__no-image {
-  align-self: center;
-  text-align: center;
-}
-
 .episode__logline {
   font-style: italic;
   color: var(--accent);
-}
-
-@media (max-width: 720px) {
-  .episode {
-    grid-template-columns: 1fr;
-  }
 }
 
 /* Browser */
@@ -178,7 +160,7 @@ h2 {
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1rem;
 }
 
@@ -186,9 +168,8 @@ h2 {
   width: 100%;
   height: 100%;
   display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  padding: 1rem;
+  gap: 0.9rem;
+  padding: 0.75rem;
   text-align: left;
   font: inherit;
   color: inherit;
@@ -216,6 +197,38 @@ h2 {
   cursor: not-allowed;
 }
 
+.show-card__poster {
+  flex: none;
+  width: 96px;
+  aspect-ratio: 2 / 3;
+  border-radius: calc(var(--radius) / 2);
+  overflow: hidden;
+  background: var(--surface-raised);
+}
+
+.show-card__poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.show-card__poster-placeholder {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.show-card__body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
 .show-card__title {
   font-weight: 700;
   font-size: 1.05rem;
@@ -229,6 +242,26 @@ h2 {
 .show-card__summary {
   flex: 1;
   font-size: 0.9rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.show-grid__footer {
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem 0;
+}
+
+.app__footer {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+.app__footer a {
+  color: inherit;
 }
 
 .show-card__genres {
