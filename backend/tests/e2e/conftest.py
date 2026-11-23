@@ -40,6 +40,7 @@ def e2e_generator(session_generator: FakeEpisodeGenerator) -> FakeEpisodeGenerat
     """The fake behind the live server, reset before each test."""
     session_generator.requests.clear()
     session_generator.error = None
+    session_generator.delay = 0.0
     return session_generator
 
 

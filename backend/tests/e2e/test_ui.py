@@ -138,3 +138,55 @@ def test_selection_survives_a_new_search(page: Page, e2e_generator: FakeEpisodeG
 
     expect(page.get_by_role("heading", name="The Office x Stranger Things: The Lost Episode")).to_be_visible()
     assert e2e_generator.requests == [["the-office", "stranger-things"]]
+
+
+def test_clear_removes_selection_and_generated_episode(page: Page) -> None:
+    page.goto("/")
+    show_card(page, "Breaking Bad").click()
+    page.get_by_role("button", name="Generate episode").click()
+    episode = page.get_by_role("article", name="Generated episode")
+    expect(episode).to_be_visible()
+
+    page.get_by_role("button", name="Clear").click()
+
+    expect(episode).to_have_count(0)
+    expect(show_card(page, "Breaking Bad")).to_have_attribute("aria-pressed", "false")
+    expect(page.get_by_role("button", name="Clear")).to_be_disabled()
+
+
+def test_clear_dismisses_episode_after_shows_were_deselected(page: Page) -> None:
+    page.goto("/")
+    show_card(page, "Friends").click()
+    page.get_by_role("button", name="Generate episode").click()
+    expect(page.get_by_role("article", name="Generated episode")).to_be_visible()
+
+    show_card(page, "Friends").click()  # deselect by hand: the episode is still on screen
+    page.get_by_role("button", name="Clear").click()
+
+    expect(page.get_by_role("article", name="Generated episode")).to_have_count(0)
+
+
+def test_clear_dismisses_an_error(page: Page, e2e_generator: FakeEpisodeGenerator) -> None:
+    e2e_generator.error = RateLimitedError("Groq rate limit reached. Please try again shortly.")
+    page.goto("/")
+    show_card(page, "Friends").click()
+    page.get_by_role("button", name="Generate episode").click()
+    expect(page.get_by_role("alert")).to_be_visible()
+
+    page.get_by_role("button", name="Clear").click()
+
+    expect(page.get_by_role("alert")).to_have_count(0)
+
+
+def test_clear_while_generating_drops_the_late_result(page: Page, e2e_generator: FakeEpisodeGenerator) -> None:
+    e2e_generator.delay = 1.0
+    page.goto("/")
+    show_card(page, "Friends").click()
+    page.get_by_role("button", name="Generate episode").click()
+    expect(page.get_by_text("Writing your episode")).to_be_visible()
+
+    page.get_by_role("button", name="Clear").click()
+    expect(page.get_by_text("Writing your episode")).to_have_count(0)
+
+    page.wait_for_timeout(1500)  # the request finishes on the server meanwhile
+    expect(page.get_by_role("article", name="Generated episode")).to_have_count(0)

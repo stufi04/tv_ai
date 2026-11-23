@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import Sequence
 
 from app.models import Episode, Show
@@ -9,9 +10,13 @@ class FakeEpisodeGenerator:
     def __init__(self) -> None:
         self.requests: list[list[str]] = []
         self.error: Exception | None = None
+        # Seconds to wait before answering, to test what happens while a request is in flight.
+        self.delay = 0.0
 
     async def generate(self, shows: Sequence[Show]) -> Episode:
         self.requests.append([show.id for show in shows])
+        if self.delay:
+            await asyncio.sleep(self.delay)
         if self.error:
             raise self.error
         titles = " x ".join(show.title for show in shows)
