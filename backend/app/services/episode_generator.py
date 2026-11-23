@@ -1,26 +1,20 @@
-import base64
 import logging
 from collections.abc import Sequence
-from typing import Protocol
+from typing import Any, Protocol
 
 import httpx
-from google import genai
-from google.genai import errors, types
+from pydantic import ValidationError
 
 from app.models import Episode, EpisodeDraft, Show
 
 logger = logging.getLogger(__name__)
 
+GROQ_BASE_URL = "https://api.groq.com/openai/v1"
+
 SYSTEM_INSTRUCTION = """\
 You are a seasoned TV writer. You write new, original episodes for existing shows.
 Stay true to each show's characters, tone and setting, but never retell an existing episode.
 Keep it family friendly and fun to read."""
-
-IMAGE_STYLE = (
-    "A cinematic, painterly illustration of a TV episode's key scene. "
-    "Do not render any text, captions, logos or watermarks. "
-    "Do not depict the likeness of real actors."
-)
 
 
 class EpisodeGenerationError(Exception):
@@ -35,8 +29,13 @@ class EpisodeGenerator(Protocol):
     async def generate(self, shows: Sequence[Show]) -> Episode: ...
 
 
+def _describe(show: Show) -> str:
+    details = ", ".join(str(part) for part in (show.year, show.network) if part)
+    return f"{show.title} ({details})" if details else show.title
+
+
 def build_story_prompt(shows: Sequence[Show]) -> str:
-    show_details = "\n".join(f"- {show.title} ({show.year}, {show.network}): {show.summary}" for show in shows)
+    show_details = "\n".join(f"- {_describe(show)}: {show.summary}" for show in shows)
     if len(shows) == 1:
         task = f"Write a brand-new episode of {shows[0].title}."
     else:
@@ -45,69 +44,102 @@ def build_story_prompt(shows: Sequence[Show]) -> str:
     return f"{task}\n\nAbout the show(s):\n{show_details}"
 
 
-class GeminiEpisodeGenerator:
-    """Writes episodes with a Gemini text model and illustrates them with an image model."""
+# Errors worth retrying on a different model: rate limits, capacity (Groq's 498) and server-side failures.
+_FALLBACK_STATUS_CODES = {429, 498, 500, 502, 503, 504}
 
-    def __init__(self, client: genai.Client, text_model: str, image_model: str | None) -> None:
-        self._client = client
-        self._text_model = text_model
-        self._image_model = image_model
+# JSON schema Groq must fill in: the EpisodeDraft fields, nothing else.
+_EPISODE_SCHEMA: dict[str, Any] = {**EpisodeDraft.model_json_schema(), "additionalProperties": False}
+
+
+class _ModelUnavailableError(Exception):
+    def __init__(self, model: str, reason: str, *, rate_limited: bool = False) -> None:
+        super().__init__(f"{model}: {reason}")
+        self.rate_limited = rate_limited
+
+
+class GroqEpisodeGenerator:
+    """Writes episodes with Groq's OpenAI-compatible chat completions API.
+
+    `models` is tried in order: if a model is rate limited, over capacity, failing or times out, the next one
+    gets the request, so one busy model doesn't fail the whole request.
+    """
+
+    def __init__(self, http: httpx.AsyncClient, models: Sequence[str]) -> None:
+        if not models:
+            raise ValueError("at least one model is required")
+        self._http = http
+        self._models = list(dict.fromkeys(models))  # dedupe, keep order
 
     async def generate(self, shows: Sequence[Show]) -> Episode:
         draft = await self._write_story(shows)
-        image_data_url = await self._illustrate(draft.image_prompt) if self._image_model else None
         return Episode(
-            show_ids=[show.id for show in shows],
-            title=draft.title,
-            logline=draft.logline,
-            story=draft.story,
-            image_data_url=image_data_url,
+            show_ids=[show.id for show in shows], title=draft.title, logline=draft.logline, story=draft.story
         )
 
     async def _write_story(self, shows: Sequence[Show]) -> EpisodeDraft:
+        prompt = build_story_prompt(shows)
+        failures: list[_ModelUnavailableError] = []
+        for model in self._models:
+            try:
+                draft = await self._write_story_with(model, prompt)
+            except _ModelUnavailableError as failure:
+                logger.warning("Groq %s; trying the next model", failure)
+                failures.append(failure)
+                continue
+            if failures:
+                logger.info("Story written by fallback model %s", model)
+            return draft
+
+        tried = ", ".join(self._models)
+        if all(failure.rate_limited for failure in failures):
+            raise RateLimitedError(f"Groq rate limit reached on every model ({tried}). Please try again shortly.")
+        raise EpisodeGenerationError(
+            f"Every Groq model is busy right now (tried {tried}). Please try again in a minute."
+        )
+
+    async def _write_story_with(self, model: str, prompt: str) -> EpisodeDraft:
+        payload = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": SYSTEM_INSTRUCTION},
+                {"role": "user", "content": prompt},
+            ],
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {"name": "episode", "schema": _EPISODE_SCHEMA},
+            },
+        }
         try:
-            response = await self._client.aio.models.generate_content(
-                model=self._text_model,
-                contents=build_story_prompt(shows),
-                config=types.GenerateContentConfig(
-                    system_instruction=SYSTEM_INSTRUCTION,
-                    response_mime_type="application/json",
-                    response_schema=EpisodeDraft,
-                ),
-            )
-        except errors.APIError as exc:
-            if exc.code == 429:
-                raise RateLimitedError("Gemini rate limit reached. Please try again shortly.") from exc
-            if exc.code == 503:
-                raise EpisodeGenerationError(
-                    f"Gemini model {self._text_model} is overloaded right now. Please try again shortly."
-                ) from exc
-            raise EpisodeGenerationError(f"Gemini request failed: {exc.message}") from exc
+            response = await self._http.post("/chat/completions", json=payload)
         except httpx.TimeoutException as exc:
-            raise EpisodeGenerationError("Gemini took too long to respond. Please try again.") from exc
+            raise _ModelUnavailableError(model, "timed out") from exc
+        except httpx.TransportError as exc:
+            raise _ModelUnavailableError(model, f"connection failed ({exc.__class__.__name__})") from exc
 
-        if not isinstance(response.parsed, EpisodeDraft):
-            raise EpisodeGenerationError("Gemini returned a response we could not understand.")
-        return response.parsed
-
-    async def _illustrate(self, scene: str) -> str | None:
-        """Best effort: the story is still useful without a picture (image quotas are tight)."""
-        assert self._image_model is not None
-        try:
-            response = await self._client.aio.models.generate_content(
-                model=self._image_model,
-                contents=f"{IMAGE_STYLE}\n\nScene: {scene}",
-                config=types.GenerateContentConfig(response_modalities=["TEXT", "IMAGE"]),
+        if response.status_code in _FALLBACK_STATUS_CODES:
+            raise _ModelUnavailableError(
+                model, f"HTTP {response.status_code}", rate_limited=response.status_code == 429
             )
-        except Exception:
-            logger.exception("Image generation failed; returning the episode without an image")
-            return None
+        if response.status_code == 401:
+            raise EpisodeGenerationError("Groq rejected the API key: check GROQ_API_KEY.")
+        if response.is_error:
+            # Bad request, unknown model, etc.: another model won't fix it.
+            raise EpisodeGenerationError(f"Groq request failed: {_error_message(response)}")
 
-        for part in response.parts or []:
-            if part.inline_data and part.inline_data.data:
-                mime_type = part.inline_data.mime_type or "image/png"
-                encoded = base64.b64encode(part.inline_data.data).decode("ascii")
-                return f"data:{mime_type};base64,{encoded}"
+        try:
+            content = response.json()["choices"][0]["message"]["content"]
+            return EpisodeDraft.model_validate_json(content)
+        except (KeyError, IndexError, TypeError, ValueError, ValidationError) as exc:
+            raise _ModelUnavailableError(model, "returned a response we could not parse") from exc
 
-        logger.warning("Image model returned no image")
-        return None
+
+def _error_message(response: httpx.Response) -> str:
+    try:
+        return str(response.json()["error"]["message"])
+    except (ValueError, KeyError, TypeError):
+        return f"HTTP {response.status_code}"
+
+
+def create_groq_client(api_key: str, timeout: float = 30) -> httpx.AsyncClient:
+    """No retries: a busy model hands over to the next one in the chain instead. Healthy models answer in seconds."""
+    return httpx.AsyncClient(base_url=GROQ_BASE_URL, timeout=timeout, headers={"Authorization": f"Bearer {api_key}"})

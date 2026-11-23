@@ -1,4 +1,4 @@
-import type { Episode, Show } from './types'
+import type { Episode, ShowPage, ShowQuery } from './types'
 
 export class ApiError extends Error {
   readonly status: number
@@ -34,8 +34,21 @@ async function readErrorMessage(response: Response): Promise<string> {
   return `Request failed with status ${response.status}`
 }
 
-export function fetchShows(): Promise<Show[]> {
-  return request<Show[]>('/api/shows')
+export const SHOWS_PAGE_SIZE = 24
+
+export function fetchShows({ q, genre, seed }: ShowQuery, offset: number, signal?: AbortSignal): Promise<ShowPage> {
+  const params = new URLSearchParams({
+    q,
+    genre,
+    seed: String(seed),
+    offset: String(offset),
+    limit: String(SHOWS_PAGE_SIZE),
+  })
+  return request<ShowPage>(`/api/shows?${params}`, { signal })
+}
+
+export function fetchGenres(): Promise<string[]> {
+  return request<string[]>('/api/genres')
 }
 
 export function createEpisode(showIds: string[]): Promise<Episode> {

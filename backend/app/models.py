@@ -18,10 +18,21 @@ class ApiModel(BaseModel):
 class Show(ApiModel):
     id: str
     title: str
-    year: int
-    network: str
+    year: int | None
+    network: str | None
     genres: list[str]
     summary: str
+    image_url: str | None = None
+    # TVmaze's popularity "weight", 0-100.
+    popularity: int = 0
+
+
+class ShowPage(ApiModel):
+    items: list[Show]
+    total: int
+    next_offset: int | None
+    # True while the catalogue is being downloaded for the first time.
+    syncing: bool = False
 
 
 class EpisodeRequest(ApiModel):
@@ -40,7 +51,6 @@ class Episode(ApiModel):
     title: str
     logline: str
     story: str
-    image_data_url: str | None = None
 
 
 class EpisodeDraft(BaseModel):
@@ -50,7 +60,4 @@ class EpisodeDraft(BaseModel):
     logline: str = Field(description="A one-sentence teaser for the episode.")
     story: str = Field(
         description="The episode as a short story of 250-350 words, split into paragraphs with blank lines."
-    )
-    image_prompt: str = Field(
-        description="A vivid visual description of the episode's key scene, used to illustrate it."
     )

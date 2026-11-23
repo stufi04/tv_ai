@@ -1,4 +1,4 @@
-"""Fixtures for browser tests: the real FastAPI app serving the built React app, with Gemini faked."""
+"""Fixtures for browser tests: the real FastAPI app serving the built React app, with the LLM faked."""
 
 import shutil
 import subprocess
@@ -10,9 +10,9 @@ from pathlib import Path
 import pytest
 import uvicorn
 
-from app.config import Settings
 from app.dependencies import get_episode_generator
 from app.main import create_app
+from tests.conftest import offline_settings
 from tests.fakes import FakeEpisodeGenerator
 
 FRONTEND_DIR = Path(__file__).resolve().parents[3] / "frontend"
@@ -45,7 +45,7 @@ def e2e_generator(session_generator: FakeEpisodeGenerator) -> FakeEpisodeGenerat
 
 @pytest.fixture(scope="session")
 def live_server_url(frontend_dist: Path, session_generator: FakeEpisodeGenerator) -> Iterator[str]:
-    app = create_app(Settings(_env_file=None, frontend_dist=frontend_dist))
+    app = create_app(offline_settings(frontend_dist=frontend_dist))
     app.dependency_overrides[get_episode_generator] = lambda: session_generator
 
     server = uvicorn.Server(uvicorn.Config(app, host="127.0.0.1", port=0, log_level="warning"))

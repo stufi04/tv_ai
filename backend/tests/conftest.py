@@ -1,4 +1,5 @@
 from collections.abc import Iterator
+from pathlib import Path
 
 import pytest
 from fastapi import FastAPI
@@ -8,6 +9,13 @@ from app.config import Settings
 from app.dependencies import get_episode_generator
 from app.main import create_app
 from tests.fakes import FakeEpisodeGenerator
+
+SHOWS_FIXTURE = Path(__file__).parent / "data" / "shows.json"
+
+
+def offline_settings(**overrides: object) -> Settings:
+    """Settings that serve the fixture catalogue and never contact TVmaze."""
+    return Settings(_env_file=None, catalog_cache_path=SHOWS_FIXTURE, sync_catalog=False, **overrides)
 
 
 def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
@@ -23,7 +31,7 @@ def fake_generator() -> FakeEpisodeGenerator:
 
 @pytest.fixture
 def app(fake_generator: FakeEpisodeGenerator) -> FastAPI:
-    app = create_app(Settings(_env_file=None))
+    app = create_app(offline_settings())
     app.dependency_overrides[get_episode_generator] = lambda: fake_generator
     return app
 

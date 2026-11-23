@@ -1,4 +1,4 @@
-import { ALL_GENRES } from '../filterShows'
+const ALL_GENRES = ''
 
 interface ShowFiltersProps {
   search: string

@@ -17,3 +17,6 @@ test-results/
 
 # dev.sh output
 logs/
+
+# Show catalogue downloaded from TVmaze
+backend/.cache/

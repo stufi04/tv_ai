@@ -1,23 +1,28 @@
 import { useCallback, useState } from 'react'
+import type { Show } from '../api/types'
 
 export const MAX_SELECTED_SHOWS = 2
 
+/** Keeps whole shows (not just ids) so a selection survives the visible results changing. */
 export function useShowSelection() {
-  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [selectedShows, setSelectedShows] = useState<Show[]>([])
 
-  const toggle = useCallback((id: string) => {
-    setSelectedIds((current) => {
-      if (current.includes(id)) return current.filter((selectedId) => selectedId !== id)
+  const toggle = useCallback((show: Show) => {
+    setSelectedShows((current) => {
+      if (current.some((selected) => selected.id === show.id)) {
+        return current.filter((selected) => selected.id !== show.id)
+      }
       if (current.length >= MAX_SELECTED_SHOWS) return current
-      return [...current, id]
+      return [...current, show]
     })
   }, [])
 
-  const clear = useCallback(() => setSelectedIds([]), [])
+  const clear = useCallback(() => setSelectedShows([]), [])
 
   return {
-    selectedIds,
-    isFull: selectedIds.length >= MAX_SELECTED_SHOWS,
+    selectedShows,
+    selectedIds: selectedShows.map((show) => show.id),
+    isFull: selectedShows.length >= MAX_SELECTED_SHOWS,
     toggle,
     clear,
   }

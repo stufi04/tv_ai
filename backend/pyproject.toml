@@ -5,11 +5,10 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "episode-generator"
 version = "1.0.0"
-description = "Generate new and crossover TV episodes with Gemini."
+description = "Generate new and crossover TV episodes with an LLM on Groq."
 requires-python = ">=3.12"
 dependencies = [
     "fastapi[standard]>=0.115",
-    "google-genai>=1.40",
     "httpx>=0.28",
     "pydantic>=2.11",
     "pydantic-settings>=2.6",
@@ -24,9 +23,6 @@ dev = [
 
 [tool.setuptools]
 packages = ["app", "app.services"]
-
-[tool.setuptools.package-data]
-app = ["data/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
